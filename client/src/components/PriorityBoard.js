@@ -8,7 +8,7 @@ const colors = {
   low: '#e9f7e9'
 };
 
-export default function PriorityBoard({ tasks = [], onMove = ()=>{} ){
+export default function PriorityBoard({ tasks = [], onMove = () => {} }){
   const groups = { urgent: [], high: [], medium: [], low: [] };
   tasks.forEach(t => {
     groups[t.priority || 'medium'].push(t);
