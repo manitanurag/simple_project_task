@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import TaskList from './pages/TaskList';
 import TaskForm from './pages/TaskForm';
 import TaskDetail from './pages/TaskDetail';
+import Users from './pages/Users';
 
 function App(){
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ function App(){
               <span style={{marginRight:12}}>Hi, {user.name}</span>
               <Link to="/tasks" style={{marginRight:12}}>Tasks</Link>
               <Link to="/tasks/new" style={{marginRight:12}}>New</Link>
+              {user.role === 'admin' && <Link to="/users" style={{marginRight:12}}>Users</Link>}
               <button onClick={logout}>Logout</button>
             </>
           ) : (
@@ -45,6 +47,7 @@ function App(){
           <Route path="/tasks/new" element={<TaskForm />} />
           <Route path="/tasks/:id" element={<TaskDetail />} />
           <Route path="/tasks/:id/edit" element={<TaskForm />} />
+          <Route path="/users" element={<Users />} />
         </Routes>
       </main>
     </div>

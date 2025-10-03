@@ -5,8 +5,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 export default function TaskForm(){
   const { id } = useParams();
   const navigate = useNavigate();
-  const [task, setTask] = useState({ title:'', description:'', dueDate:'', priority:'medium' });
+  const [task, setTask] = useState({ title:'', description:'', dueDate:'', priority:'medium', assignedTo: '' });
   const [err, setErr] = useState('');
+  const [users, setUsers] = useState([]);
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
 
   useEffect(()=> {
     if (!id) return;
@@ -16,20 +18,29 @@ export default function TaskForm(){
         title: t.title,
         description: t.description || '',
         dueDate: t.dueDate ? new Date(t.dueDate).toISOString().slice(0,10) : '',
-        priority: t.priority || 'medium'
+        priority: t.priority || 'medium',
+        assignedTo: t.assignedTo ? t.assignedTo._id : ''
       });
     }).catch(err => {
       console.error(err);
     });
   }, [id]);
 
+  useEffect(()=>{
+    if (user && user.role === 'admin'){
+      API.get('/users').then(res => setUsers(res.data)).catch(err => console.error(err));
+    }
+  },[user]);
+
   const submit = async (e) => {
     e.preventDefault();
     try {
+      const payload = { ...task };
+      if (!payload.assignedTo) delete payload.assignedTo;
       if (id) {
-        await API.put(`/tasks/${id}`, task);
+        await API.put(`/tasks/${id}`, payload);
       } else {
-        await API.post('/tasks', task);
+        await API.post('/tasks', payload);
       }
       navigate('/tasks');
     } catch (err) {
@@ -63,6 +74,17 @@ export default function TaskForm(){
             <option value="low">Low</option>
           </select>
         </div>
+        {user && user.role === 'admin' && (
+          <div style={{marginBottom:8}}>
+            <label style={{display:'block'}}>Assign to user</label>
+            <select value={task.assignedTo} onChange={e=>setTask({...task, assignedTo:e.target.value})}>
+              <option value="">(select user)</option>
+              {users.map(u => (
+                <option key={u._id} value={u._id}>{u.name} ({u.email})</option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <button type="submit" style={{padding:'8px 12px'}}>{id ? 'Save' : 'Create'}</button>
           <button type="button" style={{marginLeft:8}} onClick={()=>navigate('/tasks')}>Cancel</button>
