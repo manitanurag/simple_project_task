@@ -49,6 +49,25 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// GET /api/tasks/mine - tasks assigned to current user
+router.get('/mine', auth, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [tasks, total] = await Promise.all([
+      Task.find({ assignedTo: req.user._id }).populate('assignedTo', 'name email').sort({ dueDate: 1, createdAt: -1 }).skip(skip).limit(limit),
+      Task.countDocuments({ assignedTo: req.user._id })
+    ]);
+
+    res.json({ tasks, total, page, pages: Math.ceil(total / limit) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get task details
 router.get('/:id', auth, async (req, res) => {
   try {
